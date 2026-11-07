@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>US Exchange - 8-Bit Edition</title>
+    <!-- Include Pixel Font & html2canvas library -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            /* Apply 8-bit font globally */
+            font-family: 'Press Start 2P', monospace; 
+        }
+
+        body {
+            /* Classic 8-bit sky blue */
+            background: #5c94fc;
+            color: #000000;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            transition: background 0.3s;
+            overflow-x: hidden;
+        }
+
+        body.dark-mode {
+            /* 8-bit underground level */
+            background: #000000;
+            color: #ffffff;
+        }
+
+        .widget-container {
+            width: 100%;
+            max-width: 480px;
+            background: #ffffff;
+            /* Chunky retro borders */
+            border: 4px solid #000000;
+            box-shadow: 8px 8px 0px rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            max-height: 94vh;
+            transition: background 0.3s;
+        }
+
+        body.dark-mode .widget-container {
+            background: #222222;
+            border-color: #555555;
+            box-shadow: 8px 8px 0px #111111;
+        }
+
+        .widget-header {
+            padding: 18px 22px;
+            background: #fca311;
+            border-bottom: 4px solid #000000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        body.dark-mode .widget-header {
+            background: #14213d;
+            border-color: #555555;
+        }
+
+        .widget-header h1 {
+            font-size: 13px;
+            line-height: 1.4;
+            color: #000;
+        }
+
+        body.dark-mode .widget-header h1 {
+            color: #fff;
+        }
+
+        /* The Coin Score Display */
+        .score-display {
+            font-size: 12px;
+            background: rgba(255,255,255,0.5);
+            padding: 6px 10px;
+            border: 2px solid #000;
+            margin-top: 8px;
+            display: inline-block;
+        }
+        body.dark-mode .score-display {
+            background: #000;
+            border-color: #fff;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .retro-btn {
+            background: #ffffff;
+            border: 2px solid #000000;
+            box-shadow: 2px 2px 0px #000000;
+            padding: 8px 10px;
+            font-size: 11px;
+            cursor: pointer;
+            color: #000;
+            text-transform: uppercase;
+        }
+
+        body.dark-mode .retro-btn {
+            background: #333;
+            color: #fff;
+            border-color: #fff;
+            box-shadow: 2px 2px 0px #555;
+        }
+
+        .retro-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: none;
+        }
+
+        .widget-body {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .upcoming-banner {
+            background: #ffd166;
+            border: 3px solid #000;
+            padding: 14px;
+            flex-shrink: 0;
+        }
+
+        body.dark-mode .upcoming-banner {
+            background: #4a4e69;
+            border-color: #fff;
+        }
+
+        .upcoming-banner h3 {
+            font-size: 12px;
+            color: #000;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        body.dark-mode .upcoming-banner h3 { color: #fff; }
+
+        .upcoming-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 160px;
+            overflow-y: auto;
+        }
+
+        .upcoming-item {
+            font-size: 11px;
+            line-height: 1.4;
+            padding: 10px;
+            background: #ffffff;
+            border: 2px solid #000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #000;
+            position: relative; 
+        }
+
+        body.dark-mode .upcoming-item {
+            background: #222;
+            border-color: #fff;
+            color: #fff;
+        }
+
+        .upcoming-item.completed {
+            opacity: 0.5;
+            background: #ccc;
+            text-decoration: line-through;
+        }
+
+        body.dark-mode .upcoming-item.completed {
+            background: #111;
+        }
+
+        .upcoming-item label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        /* Chunky retro checkbox */
+        input[type="checkbox"] {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #000;
+            background: #fff;
+            cursor: pointer;
+            position: relative;
+        }
+        body.dark-mode input[type="checkbox"] { border-color: #fff; background: #000; }
+        input[type="checkbox"]:checked::after {
+            content: 'X';
+            position: absolute;
+            top: -1px;
+            left: 3px;
+            font-size: 12px;
+            color: #e63946;
+        }
+
+        .upcoming-badge {
+            background: #000;
+            color: #fff;
+            padding: 4px 6px;
+            font-size: 10px;
+        }
+        body.dark-mode .upcoming-badge { background: #fff; color: #000; }
+
+        .card {
+            background: #f8f9fa;
+            border: 3px solid #000;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        body.dark-mode .card {
+            background: #1a1a1a;
+            border-color: #fff;
+        }
+
+        .card-header {
+            padding: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            background: #e9ecef;
+            border-bottom: 2px solid #000;
+        }
+        body.dark-mode .card-header { background: #333; border-bottom-color: #fff; }
+
+        .card-header h2 { font-size: 12px; }
+        .chevron { font-size: 12px; transition: transform 0.2s; }
+        .card.active .chevron { transform: rotate(180deg); }
+
+        .card-content {
+            max-height: 0;
+            overflow: hidden;
+            padding: 0 14px;
+            background: #fff;
+        }
+        body.dark-mode .card-content { background: #222; }
+
+        .card.active .card-content {
+            max-height: 250px;
+            padding: 14px;
+            overflow-y: auto;
+        }
+
+        .settings-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 2px dashed #000;
+        }
+        body.dark-mode .settings-form { border-bottom-color: #fff; }
+
+        .settings-form label {
+            font-size: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            line-height: 1.4;
+        }
+
+        input[type="text"], input[type="date"] {
+            padding: 10px;
+            font-size: 11px;
+            border: 2px solid #000;
+            background: #fff;
+            color: #000;
+        }
+        body.dark-mode input[type="text"], body.dark-mode input[type="date"] { border-color: #fff; background: #000; color: #fff; }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar-bg {
+            width: 100%;
+            height: 16px;
+            background: #fff;
+            border: 2px solid #000;
+            padding: 2px;
+        }
+        body.dark-mode .progress-bar-bg { border-color: #fff; background: #000; }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: #e63946;
+            width: 0%;
+        }
+
+        .milestone-list { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-top: 12px;}
+        .milestone-item {
+            font-size: 11px;
+            padding: 10px;
+            background: #fff;
+            border: 2px solid #000;
+            line-height: 1.4;
+        }
+        body.dark-mode .milestone-item { background: #222; border-color: #fff; }
+
+        .bucket-input-row { display: flex; flex-direction: column; gap: 8px; }
+        
+        .export-btn {
+            width: 100%;
+            padding: 14px;
+            background: #38b000;
+            color: white;
+            font-size: 11px;
+        }
+
+        /* 🪙 Coin Animation Styles */
+        .coin-pop {
+            position: fixed;
+            font-size: 28px;
+            pointer-events: none;
+            z-index: 9999;
+            animation: coinFloat 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        @keyframes coinFloat {
+            0% { transform: translateY(0) scale(0.5); opacity: 1; }
+            50% { transform: translateY(-40px) scale(1.2); opacity: 1; }
+            100% { transform: translateY(-80px) scale(1); opacity: 0; }
+        }
+
+        /* 8-Bit Lock-Screen Template */
+        #lockscreen-template {
+            position: fixed;
+            left: -9999px;
+            top: 0;
+            width: 390px;
+            height: 844px;
+            background: #000000;
+            color: #ffffff;
+            padding: 220px 24px 40px 24px;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            font-family: 'Press Start 2P', monospace;
+            border: 8px solid #333;
+        }
+        
+        .ls-title {
+            text-align: center;
+            font-size: 16px;
+            color: #fca311;
+            margin-bottom: 24px;
+            line-height: 1.4;
+            text-shadow: 2px 2px 0px #e63946;
+        }
+
+        .ls-progress-container {
+            margin-bottom: 24px;
+            width: 100%;
+        }
+
+        .ls-progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+
+        .ls-progress-bar-bg {
+            width: 100%;
+            height: 20px;
+            background: #222;
+            border: 4px solid #fff;
+            padding: 3px;
+        }
+
+        .ls-progress-bar-fill {
+            height: 100%;
+            background: #e63946;
+            width: 0%;
+        }
+
+        .ls-reminders-box {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .ls-item {
+            background: #222;
+            border: 4px solid #fff;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .ls-item-title {
+            font-size: 12px;
+            line-height: 1.4;
+            color: #fff;
+        }
+        .ls-item-badge {
+            align-self: flex-start;
+            font-size: 11px;
+            color: #000;
+            background: #fca311;
+            padding: 6px 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="widget-container">
+        <div class="widget-header">
+            <div>
+                <h1>🇺🇸 US Exchange</h1>
+                <div class="score-display">🪙 x <span id="score-val">0</span></div>
+            </div>
+            <div class="header-actions">
+                <button class="retro-btn" onclick="toggleDarkMode()">🌓</button>
+                <button class="retro-btn" onclick="toggleCard('card-academics')">⚙️</button>
+            </div>
+        </div>
+        <div class="widget-body">
+            <div class="upcoming-banner" id="upcoming-section">
+                <h3><span>⏰ QUEST LOG</span> <span id="upcoming-count">0 ACTV</span></h3>
+                <ul class="upcoming-list" id="upcoming-list"></ul>
+            </div>
+            <div class="card active" id="card-academics">
+                <div class="card-header" onclick="toggleCard('card-academics')">
+                    <h2>🎓 ACADEMICS</h2>
+                    <span class="chevron">▼</span>
+                </div>
+                <div class="card-content">
+                    
+                    <div class="settings-form">
+                        <label>START (DATE): <input type="date" id="input-start" value="2026-09-24" onchange="saveAndRefresh()"></label>
+                        <label>END (DATE): <input type="date" id="input-end" value="2026-12-11" onchange="saveAndRefresh()"></label>
+                        <label>MIDTERM (DATE): <input type="date" id="input-midterm-date" value="2026-10-25" onchange="saveAndRefresh()"></label>
+                        <label>FINALS (DATE): <input type="date" id="input-finals-date" value="2026-12-05" onchange="saveAndRefresh()"></label>
+                    </div>
+
+                    <div class="progress-container">
+                        <div class="progress-info">
+                            <span id="term-status-text">CALC...</span>
+                            <span id="progress-percent">0%</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="progress-fill"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card" id="card-culture">
+                <div class="card-header" onclick="toggleCard('card-culture')">
+                    <h2>👯 CULTURE EVENTS</h2>
+                    <span class="chevron">▼</span>
+                </div>
+                <div class="card-content">
+                    <ul class="milestone-list" id="culture-list"></ul>
+                </div>
+            </div>
+            <div class="card" id="card-bucket">
+                <div class="card-header" onclick="toggleCard('card-bucket')">
+                    <h2>🌄 BUCKET LIST</h2>
+                    <span class="chevron">▼</span>
+                </div>
+                <div class="card-content">
+                    
+                    <div class="bucket-input-row">
+                        <input type="text" id="bucket-text" placeholder="GOAL (e.g. SF TRIP)">
+                        <input type="date" id="bucket-date" placeholder="DATE">
+                        <button class="retro-btn" style="background:#e63946; color:#fff;" onclick="addBucketItem()">ADD GOAL</button>
+                    </div>
+
+                    <ul class="milestone-list" id="bucket-list" style="max-height:100px; overflow-y:auto;"></ul>
+                </div>
+            </div>
+            <button class="retro-btn export-btn" onclick="exportLockScreenImage()">📱 GENERATE WALLPAPER</button>
+        </div>
+    </div>
+
+    <!-- 8-Bit Lock Screen Export Template -->
+    <div id="lockscreen-template">
+        <div class="ls-title">► TERM PROGRESS</div>
+        <div class="ls-progress-container">
+            <div class="ls-progress-info">
+                <span id="ls-status-text">CALC...</span>
+                <span id="ls-progress-percent">0%</span>
+            </div>
+            <div class="ls-progress-bar-bg">
+                <div class="ls-progress-bar-fill" id="ls-progress-fill"></div>
+            </div>
+        </div>
+        <div class="ls-title" style="margin-top: 30px;">► UPCOMING QUESTS</div>
+        <div class="ls-reminders-box" id="ls-reminders-container"></div>
+    </div>
+
+    <script>
+        let completedItems = JSON.parse(localStorage.getItem('ex_completed') || '[]');
+        let customBucketItems = JSON.parse(localStorage.getItem('ex_bucket') || '[]');
+        let coinScore = parseInt(localStorage.getItem('ex_score') || '0');
+        
+        document.getElementById('score-val').innerText = coinScore;
+
+        if(localStorage.getItem('ex_start')) document.getElementById('input-start').value = localStorage.getItem('ex_start');
+        if(localStorage.getItem('ex_end')) document.getElementById('input-end').value = localStorage.getItem('ex_end');
+        if(localStorage.getItem('ex_mid')) document.getElementById('input-midterm-date').value = localStorage.getItem('ex_mid');
+        if(localStorage.getItem('ex_fin')) document.getElementById('input-finals-date').value = localStorage.getItem('ex_fin');
+
+        if(localStorage.getItem('ex_theme') === 'dark') document.body.classList.add('dark-mode');
+
+        function toggleCard(cardId) {
+            document.getElementById(cardId).classList.toggle('active');
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('ex_theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        }
+
+        
+        function parseDateInput(str) {
+            if (!str) return null;
+            // Native HTML5 date pickers return YYYY-MM-DD
+            if (str.includes('-')) {
+                const parts = str.split('-');
+                if (parts.length !== 3) return null;
+                // new Date(year, monthIndex, day)
+                return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+            }
+            // Fallback for old manual format (MM/DD/YYYY) just in case
+            if (str.includes('/')) {
+                const parts = str.split('/');
+                if (parts.length !== 3) return null;
+                return new Date(parseInt(parts[2], 10), parseInt(parts[0], 10) - 1, parseInt(parts[1], 10));
+            }
+            return null;
+        }
+
+        function saveAndRefresh() {
+            localStorage.setItem('ex_start', document.getElementById('input-start').value);
+            localStorage.setItem('ex_end', document.getElementById('input-end').value);
+            localStorage.setItem('ex_mid', document.getElementById('input-midterm-date').value);
+            localStorage.setItem('ex_fin', document.getElementById('input-finals-date').value);
+            updateDashboard();
+        }
+
+        function getFestivalsForTerm(startDate) {
+            const year = startDate.getFullYear();
+            const startMonth = startDate.getMonth() + 1;
+            if (startMonth >= 8 && startMonth <= 11) {
+                return [
+                    { id: 'fest-halloween', title: 'HALLOWEEN', date: new Date(year, 9, 31) },
+                    { id: 'fest-thanksgiving', title: 'THANKSGIVING', date: new Date(year, 10, 26) },
+                    { id: 'fest-christmas', title: 'CHRISTMAS', date: new Date(year, 11, 25) }
+                ];
+            } else if (startMonth === 12 || startMonth === 1 || startMonth === 2) {
+                return [
+                    { id: 'fest-newyear', title: 'NEW YEARS EVE', date: new Date(year, 0, 1) },
+                    { id: 'fest-superbowl', title: 'SUPER BOWL', date: new Date(year, 1, 8) }
+                ];
+            } else {
+                return [
+                    { id: 'fest-springbreak', title: 'SPRING BREAK', date: new Date(year, 3, 1) },
+                    { id: 'fest-memorial', title: 'MEMORIAL DAY', date: new Date(year, 4, 26) }
+                ];
+            }
+        }
+
+        function updateDashboard() {
+            calculateProgress();
+            updateCultureGuide();
+            renderUpcomingAndBucket();
+        }
+
+        function calculateProgress() {
+            const startDate = parseDateInput(document.getElementById('input-start').value);
+            const endDate = parseDateInput(document.getElementById('input-end').value);
+            if (!startDate || !endDate) return;
+
+            endDate.setHours(23,59,59);
+            startDate.setHours(0,0,0);
+            const now = new Date();
+
+            let percent = Math.round(((now - startDate) / (endDate - startDate)) * 100);
+            percent = Math.max(0, Math.min(100, percent));
+            const daysRemaining = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
+
+            document.getElementById('progress-percent').innerText = percent + '%';
+            document.getElementById('progress-fill').style.width = percent + '%';
+            document.getElementById('term-status-text').innerText = daysRemaining > 0 ? daysRemaining + ' DAYS LEFT' : 'STAGE CLEARED';
+        }
+
+        function updateCultureGuide() {
+            const startDate = parseDateInput(document.getElementById('input-start').value);
+            if (!startDate) return;
+            const cultureList = document.getElementById('culture-list');
+            cultureList.innerHTML = '';
+
+            getFestivalsForTerm(startDate).forEach(f => {
+                const dateStr = (f.date.getMonth() + 1) + '/' + f.date.getDate();
+                const li = document.createElement('li');
+                li.className = 'milestone-item';
+                li.innerHTML = `<span>${f.title}</span> <span style="float:right;">${dateStr}</span>`;
+                cultureList.appendChild(li);
+            });
+        }
+
+        function getEventsList() {
+            const startDate = parseDateInput(document.getElementById('input-start').value);
+            const midDate = parseDateInput(document.getElementById('input-midterm-date').value);
+            const finDate = parseDateInput(document.getElementById('input-finals-date').value);
+
+            let events = [];
+            if (startDate) getFestivalsForTerm(startDate).forEach(f => events.push({ id: f.id, title: f.title, date: f.date }));
+            
+            if (midDate) {
+                const revMid = new Date(midDate); revMid.setDate(midDate.getDate() - 7);
+                events.push({ id: 'rev-mid', title: 'MIDTERM REVISION', date: revMid });
+                events.push({ id: 'exam-mid', title: 'MIDTERM EXAM', date: midDate });
+            }
+            if (finDate) {
+                const revFin = new Date(finDate); revFin.setDate(finDate.getDate() - 7);
+                events.push({ id: 'rev-fin', title: 'FINALS REVISION', date: revFin });
+                events.push({ id: 'exam-fin', title: 'FINALS WEEK', date: finDate });
+            }
+
+            customBucketItems.forEach((item, index) => {
+                const itemDate = parseDateInput(item.date);
+                if (itemDate) events.push({ id: 'bucket-' + index, title: item.text.toUpperCase(), date: itemDate });
+            });
+
+            return events;
+        }
+
+        function renderUpcomingAndBucket() {
+            const now = new Date();
+            now.setHours(0,0,0,0);
+
+            let events = getEventsList();
+            events.sort((a, b) => {
+                const aDone = completedItems.includes(a.id);
+                const bDone = completedItems.includes(b.id);
+                if (aDone === bDone) return a.date - b.date;
+                return aDone ? 1 : -1;
+            });
+
+            const upcomingList = document.getElementById('upcoming-list');
+            upcomingList.innerHTML = '';
+            let activeCount = 0;
+
+            events.forEach(ev => {
+                const diffDays = Math.ceil((ev.date - now) / (1000 * 60 * 60 * 24));
+                const isCompleted = completedItems.includes(ev.id);
+                
+                if (diffDays >= -30 || isCompleted) {
+                    if (!isCompleted) activeCount++;
+                    const li = document.createElement('li');
+                    li.className = 'upcoming-item' + (isCompleted ? ' completed' : '');
+                    li.innerHTML = `
+                        <label>
+                            <input type="checkbox" ${isCompleted ? 'checked' : ''} onclick="handleQuestComplete(event, '${ev.id}')">
+                            <span>${ev.title}</span>
+                        </label>
+                        <span class="upcoming-badge">${isCompleted ? 'DONE' : 'T-' + diffDays + 'd'}</span>
+                    `;
+                    upcomingList.appendChild(li);
+                }
+            });
+
+            document.getElementById('upcoming-count').innerText = activeCount + ' ACTV';
+
+            const bucketListUl = document.getElementById('bucket-list');
+            bucketListUl.innerHTML = '';
+            if (customBucketItems.length === 0) {
+                bucketListUl.innerHTML = `<li class="milestone-item" style="color:#888;">NO GOALS YET</li>`;
+            } else {
+                customBucketItems.forEach((item, index) => {
+                    const li = document.createElement('li');
+                    li.className = 'milestone-item';
+                    li.innerHTML = `<span>${item.text.toUpperCase()}</span> <span style="float:right;">${item.date} <button onclick="deleteBucket(${index})" style="background:none;border:none;color:red;cursor:pointer;font-family:inherit;">X</button></span>`;
+                    bucketListUl.appendChild(li);
+                });
+            }
+        }
+
+        // Gamification Logic: Play animation and increment score
+        function handleQuestComplete(event, id) {
+            const isCompleted = completedItems.includes(id);
+            if (!isCompleted) {
+                // Checking off an item (Earning a coin!)
+                completedItems.push(id);
+                coinScore += 10;
+                spawnCoinAnim(event.clientX, event.clientY);
+            } else {
+                // Unchecking
+                completedItems = completedItems.filter(item => item !== id);
+                coinScore = Math.max(0, coinScore - 10);
+            }
+            
+            localStorage.setItem('ex_completed', JSON.stringify(completedItems));
+            localStorage.setItem('ex_score', coinScore);
+            document.getElementById('score-val').innerText = coinScore;
+            
+            // Re-render after a tiny delay so the user sees the checkbox click happen first
+            setTimeout(renderUpcomingAndBucket, 250);
+        }
+
+        function spawnCoinAnim(x, y) {
+            const coin = document.createElement('div');
+            coin.innerText = '🪙';
+            coin.className = 'coin-pop';
+            // Adjust to start exactly where the user clicked
+            coin.style.left = (x - 10) + 'px';
+            const scrollY = window.scrollY || document.documentElement.scrollTop;
+            coin.style.top = (y + scrollY - 20) + 'px';
+            document.body.appendChild(coin);
+            
+            // Remove the element after animation ends
+            setTimeout(() => coin.remove(), 700);
+        }
+
+        function addBucketItem() {
+            const text = document.getElementById('bucket-text').value.trim();
+            const date = document.getElementById('bucket-date').value.trim();
+            if (text === '' || !parseDateInput(date)) return;
+
+            customBucketItems.push({ text, date });
+            localStorage.setItem('ex_bucket', JSON.stringify(customBucketItems));
+            document.getElementById('bucket-text').value = '';
+            document.getElementById('bucket-date').value = '';
+            renderUpcomingAndBucket();
+        }
+
+        function deleteBucket(index) {
+            customBucketItems.splice(index, 1);
+            localStorage.setItem('ex_bucket', JSON.stringify(customBucketItems));
+            renderUpcomingAndBucket();
+        }
+
+        // 8-Bit Lock Screen Exporter
+        function exportLockScreenImage() {
+            const template = document.getElementById('lockscreen-template');
+            const container = document.getElementById('ls-reminders-container');
+            container.innerHTML = '';
+
+            // Update Lock Screen Progress Bar
+            const startDate = parseDateInput(document.getElementById('input-start').value);
+            const endDate = parseDateInput(document.getElementById('input-end').value);
+            if (startDate && endDate) {
+                const now = new Date();
+                const progressEnd = new Date(endDate);
+                progressEnd.setHours(23,59,59);
+                const progressStart = new Date(startDate);
+                progressStart.setHours(0,0,0);
+                
+                let percent = Math.round(((now - progressStart) / (progressEnd - progressStart)) * 100);
+                percent = Math.max(0, Math.min(100, percent));
+                const daysRemaining = Math.ceil((progressEnd - now) / (1000 * 60 * 60 * 24));
+                
+                document.getElementById('ls-progress-percent').innerText = percent + '%';
+                document.getElementById('ls-progress-fill').style.width = percent + '%';
+                document.getElementById('ls-status-text').innerText = daysRemaining > 0 ? daysRemaining + ' DAYS LEFT' : 'STAGE CLEARED';
+            }
+
+            let events = getEventsList();
+            const now = new Date();
+            now.setHours(0,0,0,0);
+            
+            // Sort events chronologically!
+            events.sort((a, b) => a.date - b.date);
+
+            const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+
+            let addedCount = 0;
+            events.forEach(ev => {
+                const diffDays = Math.ceil((ev.date - now) / (1000 * 60 * 60 * 24));
+                const isCompleted = completedItems.includes(ev.id);
+
+                if (diffDays >= 0 && !isCompleted && addedCount < 5) {
+                    addedCount++;
+                    const dateFormatted = `${monthNames[ev.date.getMonth()]} ${ev.date.getDate()}`;
+
+                    const div = document.createElement('div');
+                    div.className = 'ls-item';
+                    div.innerHTML = `
+                        <span class="ls-item-badge">${dateFormatted}</span>
+                        <span class="ls-item-title">${ev.title}</span>
+                    `;
+                    container.appendChild(div);
+                }
+            });
+
+            if (addedCount === 0) {
+                container.innerHTML = `<div class="ls-item"><span class="ls-item-title">NO ACTIVE QUESTS</span></div>`;
+            }
+
+            // Small delay to ensure the Google Font has fully loaded into the hidden template before screenshot
+            setTimeout(() => {
+                html2canvas(template, { scale: 3, useCORS: true }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = '8Bit_Exchanger_LockScreen.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                });
+            }, 300);
+        }
+
+        updateDashboard();
+    </script>
+</body>
+</html>
